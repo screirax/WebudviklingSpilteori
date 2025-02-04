@@ -2,10 +2,58 @@ let canvas = document.getElementById("canvas");
 let context = canvas.getContext("2d");
 const SW = canvas.width;
 const SH = canvas.height;
-const TILE_W = 15;
+const TILE_W = 25;
 let bgcolor = "green";
 
+
+class vector{
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+let start = new vector(100,0);
+
+let pathData  =[
+    new vector(0,150),
+    new vector(600,0),
+    new vector(0,150),
+    new vector(-550,0),
+    new vector(0, 200),
+    new vector(400,0),
+]
+
 function update (){
+
+}
+
+function renderPath () {
+    let drawPath = new vector(start.x, start.y);
+
+    context.fillStyle="grey";
+
+    pathData.forEach(function (path){
+        if (path.x == 0 ){
+            let x = drawPath.x - TILE_W;
+            let y = drawPath.y - TILE_W;
+            let w = TILE_W * 2;
+            let h = path.y + TILE_W  * 2;
+
+            context.fillRect(x, y, w, h);
+        }
+        else {
+            let x = drawPath.x - TILE_W;
+            let y = drawPath.y - TILE_W;
+            let w = path.x + TILE_W * 2;
+            let h = TILE_W * 2;
+
+            context.fillRect(x, y, w, h);
+        }
+
+        drawPath.x += path.x;
+        drawPath.y += path.y;
+    })
 
 }
 
@@ -36,7 +84,7 @@ function renderGrid (){
 function render(){
     context.fillStyle = bgcolor;
     context.fillRect(0, 0, SW, SH);
-
+    renderPath();
     renderGrid();
 }
 
