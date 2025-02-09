@@ -7,10 +7,15 @@
     <title>Arcade Games</title>
 </head>
 <body>
+<div id="gameBox">
     <canvas id="canvas" width="800" height="600"></canvas>
-
-
-
+    <div id="infoarea">
+        <p>Cash: <span id="cash">$0</span></p>
+        <p>Score: <span id="score">0</span></p>
+        <p>Wave: <span id="wave">0</span></p>
+        <p>Lives: <span id="lives">10</span></p>
+    </div>
+</div>
 
 
 

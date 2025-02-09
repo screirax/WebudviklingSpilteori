@@ -1,4 +1,51 @@
-body{
-    background-color: aqua;
+body, html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: darkgray;
 }
 
+#gameBox {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background-color: #34495e;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+#canvas {
+    border: 3px solid black;
+}
+
+#infoarea {
+    background-color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+    font-family: Arial, sans-serif;
+}
+
+.popup {
+    position: absolute;
+    background-color: white;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    border-radius: 10px;
+    z-index: 1000;
+    width: 300px;
+}
+.popup input {
+    width: 80%;
+    padding: 5px;
+    margin: 10px 0;
+}
+
+.popup button {
+    padding: 5px 10px;
+    cursor: pointer;
+}
