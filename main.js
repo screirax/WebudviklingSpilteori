@@ -7,7 +7,7 @@ let bgcolor = "green";
 let highscore = 0
 let lives = 10;
 let waves = 1;
-let cash = 50;
+let gold = 50;
 
 class Soldier {
     constructor(pos,color,r,health,damage) {
@@ -108,7 +108,11 @@ function gameOver() {
     popup.style.transform = "translate(-50%, -50%)";
 
 }
+function saveScore() {
 
+
+
+}
 
 class vector{
     constructor(x, y) {
@@ -148,7 +152,7 @@ function update (){
         s.update();
     });
 
-    document.getElementById("cash").innerText = cash;
+    document.getElementById("gold").innerText = gold;
     document.getElementById("score").innerText = highscore;
     document.getElementById("wave").innerText = waves;
     document.getElementById("lives").innerText = lives;
@@ -214,7 +218,7 @@ function infoarea(){
     var statusbar = document.createElement("div");
     statusbar.setAttribute("id", "statusbar");
     statusbar.setAttribute("class", "statusbar");
-    statusbar.innerHTML = '<p> Cash: <span id="cash">$0</span> Score: <span id="score">0</span> Wave: <span id="wave">0</span> Lives: <span id="lives">0</span></p>';
+    statusbar.innerHTML = '<p> Cash: <span id="gold">$0</span> Score: <span id="score">0</span> Wave: <span id="wave">0</span> Lives: <span id="lives">0</span></p>';
     document.body.appendChild(statusbar);
 }
 function render(){
@@ -223,7 +227,7 @@ function render(){
 
 
     renderPath();
-    renderGrid();
+    //renderGrid();
 
     //soldier.render();
     soldiers.forEach(function (s){
@@ -262,42 +266,3 @@ let gamerLoop = setInterval(play, 1000/60 );
 
 
 
-
-
-/* simple savescore og bagefter vise din score
-
-function saveScore() {
-    let playerName = document.getElementById("playerName").value || "Anonymous";
-    let playerScore = highscore;
-
-    // Hent eksisterende scores fra localStorage
-    let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-
-    // Tilføj ny score
-    leaderboard.push({ name: playerName, score: playerScore });
-
-    // Sortér efter højeste score
-    leaderboard.sort((a, b) => b.score - a.score);
-
-    // Gem tilbage i localStorage
-    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-
-    // Vis leaderboardet
-    showLeaderboard();
-}
-
-function showLeaderboard() {
-    let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-
-    // Opret HTML til leaderboard
-    let leaderboardHTML = "<h2>Leaderboard</h2><ul>";
-    leaderboard.forEach((entry, index) => {
-        leaderboardHTML += `<li>${index + 1}. ${entry.name} - ${entry.score}</li>`;
-    });
-    leaderboardHTML += "</ul>";
-
-    // Erstat popup med leaderboard
-    document.getElementById("gameOverPopup").innerHTML = leaderboardHTML;
-}
-
- */
