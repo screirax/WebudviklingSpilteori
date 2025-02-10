@@ -109,8 +109,11 @@ function gameOver() {
 
 }
 function saveScore() {
+    let playerName = document.getElementById("playerName").value || "Anomyous";
+    let playerScore = highscore;
 
 
+// 10|phJ5zwoundpVVSB7SP5efJNbpcTSaK25ZDsgCKq229b28198
 
 }
 
