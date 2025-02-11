@@ -8,5 +8,3 @@ $response = apiDelete($url);
 echo '<pre>';
 echo json_encode($response, JSON_PRETTY_PRINT);
 echo '</pre>';
-
-?>

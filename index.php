@@ -2,7 +2,11 @@
 require_once __DIR__ . '/api.php';
 
 $url = 'https://highscores.martindilling.com/api/v1/games';
-$response = apiGet($url);
+try {
+    $response = apiGet($url);
+}catch (Throwable $e){
+    var_dump($e);
+}
 
 ?>
 
@@ -20,7 +24,7 @@ $response = apiGet($url);
     <canvas id="canvas" width="800" height="600"></canvas>
     <div id="infoarea">
         <p>Gold: <span id="gold">$0</span></p>
-        <p>Score: <span id="score">0</span></p>
+        <p>Score: <span id="highscore">0</span></p>
         <p>Wave: <span id="wave">0</span></p>
         <p>Lives: <span id="lives">10</span></p>
     </div>
@@ -36,7 +40,7 @@ $response = apiGet($url);
     <div data-player class="player"></div>
     <div data-score class="score"></div>
     <button data-send-button class="send-button">Send</button>
-    <pre data-response-preview class="response-preview"><?php // echo $response ? json_decode($response, JSON_PRETTY_PRINT) : '' ?></pre>
+    <pre data-response-preview class="response-preview"><?php  echo $response ? json_encode($response, JSON_PRETTY_PRINT) : '' ?></pre>
 
 </div>
 
@@ -46,12 +50,12 @@ $response = apiGet($url);
     const sendButton = document.querySelector('[data-send-button]');
     const responsePreviewElement = document.querySelector('[data-response-preview]');
 
-    const player = generatePireateName();
+    const player = generatePirateName();
     const score = Math.round(Math.random() * 1000);
 
     playerElement.textContent = player;
     scoreElement.textContent = score.toString();
-    function generatePireateName () {
+    function generatePirateName () {
         const firstNames = ["Blackbeard", "Salty", "One-Eyed", "Mad", "Captain", "Peg-Leg", "Red", "Stormy", "Jolly", "Barnacle"];
         const lastNames = ["McScurvy", "Silverhook", "Rumbelly", "Seadog", "Plankwalker", "Bones", "Squidbeard", "Driftwood", "Sharkbait", "Bootstraps"];
 
@@ -61,6 +65,32 @@ $response = apiGet($url);
         return `${randomFirstName} ${randomLastName}`;
     }
 
+    sendButton.addEventListener('click', () => {
+        fetch(
+            'submit-highscore.php',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    player: player,
+                    score: score,
+                }),
+            }
+        )
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                console.log(data);
+                responsePreviewElement.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(function (error){
+                console.error(error);
+                responsePreviewElement.textContent = JSON.stringify(error, null, 2);
+            });
+    });
 
 
 

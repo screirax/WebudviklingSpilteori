@@ -10,5 +10,3 @@ $response = apiPost($url, $payload);
 echo '<pre>';
 echo json_encode($response, JSON_PRETTY_PRINT);
 echo '</pre>';
-
-?>

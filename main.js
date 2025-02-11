@@ -4,7 +4,7 @@ const SW = canvas.width;
 const SH = canvas.height;
 const TILE_W = 25;
 let bgcolor = "green";
-let highscore = 0
+let highscore = 1;
 let lives = 10;
 let waves = 1;
 let gold = 50;
@@ -97,6 +97,7 @@ function gameOver() {
         <p>Enter your name:</p>
         <input type="text" id="playerName" placeholder="Your Name">
         <button onclick="saveScore()">Submit Score</button>
+        <button onclick="playAgain()">Play Again</button>
     `;
 
 
@@ -108,9 +109,48 @@ function gameOver() {
     popup.style.transform = "translate(-50%, -50%)";
 
 }
+
+function playAgain() {
+
+    let popup = document.getElementById("gameOverPopup");
+    if (popup) {
+        popup.remove();
+    }
+
+
+    lives = 10;
+    highscore = 0;
+    waves = 1;
+    gold = 50;
+
+
+    soldiers = [];
+    let soldierStart = new vector(100, 0);
+    for (let i = 0; i < NUM_SOLDIERS; i++) {
+        let newSoldier = new Soldier(new vector(soldierStart.x, soldierStart.y), "blue", 20, 50, 1);
+        soldiers.push(newSoldier);
+        soldierStart.y -= 50;
+    }
+
+
+    gamerLoop = setInterval(play, 1000 / 60);
+}
 function saveScore() {
     let playerName = document.getElementById("playerName").value || "Anomyous";
     let playerScore = highscore;
+
+    fetch('submit-highscore.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            player: playerName,
+            score: playerScore,
+        }),
+    })
+
+
 
 
 // 10|phJ5zwoundpVVSB7SP5efJNbpcTSaK25ZDsgCKq229b28198
@@ -156,7 +196,7 @@ function update (){
     });
 
     document.getElementById("gold").innerText = gold;
-    document.getElementById("score").innerText = highscore;
+    document.getElementById("highscore").innerText = highscore;
     document.getElementById("wave").innerText = waves;
     document.getElementById("lives").innerText = lives;
 
