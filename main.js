@@ -8,6 +8,7 @@ let highscore = 1;
 let lives = 10;
 let waves = 1;
 let gold = 50;
+let towers = [];
 
 class Soldier {
     constructor(pos,color,r,health,damage) {
@@ -80,6 +81,66 @@ class Soldier {
     }
 
 }
+
+class Tower {
+    constructor(x, y, range, damage) {
+        this.x = x;
+        this.y = y;
+        this.range = range;
+        this.damage = damage;
+
+    }
+
+    attack(enemy) {
+
+        const distance = Math.sqrt(Math.pow(enemy.pos.x - this.x, 2) + Math.pow(enemy.pos.y - this.y, 2));
+
+        if (distance <= this.range) {
+            enemy.health -= this.damage;
+        }
+    }
+}
+
+function placeTower(x, y) {
+    let newTower = new Tower(x, y, 100, 10);
+    towers.push(newTower);
+}
+
+function renderTowers() {
+    context.fillStyle = "black"; // Tårnfarve
+    towers.forEach(tower => {
+        context.beginPath();
+        context.arc(tower.x, tower.y, 10, 0, Math.PI * 2);
+        context.fill();
+
+        // Tegn rækkevidde (valgfrit)
+        context.strokeStyle = "rgba(0, 0, 0, 0.3)";
+        context.beginPath();
+        context.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
+        context.stroke();
+    });
+}
+
+function updateTowers() {
+    towers.forEach(tower => {
+        soldiers.forEach(enemy => {
+            tower.attack(enemy);
+            if (enemy.health <= 0) {
+                soldiers.splice(soldiers.indexOf(enemy), 1);
+                highscore += 10;
+            }
+        });
+    });
+}
+
+canvas.addEventListener("click", function(event) {
+    let rect = canvas.getBoundingClientRect();
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    placeTower(x, y);
+});
+
+
 function gameOver() {
     clearInterval(gamerLoop);
 
@@ -98,6 +159,7 @@ function gameOver() {
         <input type="text" id="playerName" placeholder="Your Name">
         <button onclick="saveScore()">Submit Score</button>
         <button onclick="playAgain()">Play Again</button>
+        <iframe src="https://highscores.martindilling.com/games/24/embed?" title="Highscore table for Tower Defense" width="100%" height="100%"></iframe>
     `;
 
 
@@ -119,7 +181,7 @@ function playAgain() {
 
 
     lives = 10;
-    highscore = 0;
+    highscore = 1;
     waves = 1;
     gold = 50;
 
@@ -151,11 +213,10 @@ function saveScore() {
     })
 
 
-
-
 // 10|phJ5zwoundpVVSB7SP5efJNbpcTSaK25ZDsgCKq229b28198
 
 }
+
 
 class vector{
     constructor(x, y) {
@@ -189,12 +250,14 @@ for (let i = 0; i < NUM_SOLDIERS; i++) {
     solderStart.y -= 50;
 }
 
+
+
 function update (){
     //soldier.update();
     soldiers.forEach(function (s){
         s.update();
     });
-
+    updateTowers();
     document.getElementById("gold").innerText = gold;
     document.getElementById("highscore").innerText = highscore;
     document.getElementById("wave").innerText = waves;
@@ -271,7 +334,7 @@ function render(){
 
     renderPath();
     //renderGrid();
-
+    renderTowers();
     //soldier.render();
     soldiers.forEach(function (s){
         s.render();
