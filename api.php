@@ -1,12 +1,17 @@
 <?php
+$config = require'apiconfig.php';
+
+
 
 function apiCall(string $method, string $url, ?array $payload = null): array
 {
-    $token = '10|phJ5zwoundpVVSB7SP5efJNbpcTSaK25ZDsgCKq229b28198';
+    global $config;
+
+    //$token = '10|phJ5zwoundpVVSB7SP5efJNbpcTSaK25ZDsgCKq229b28198';
     $headers = [
         'Accept: application/json',
         'Content-type: application/json',
-        'Authorization: Bearer ' . $token,
+        'Authorization: Bearer ' . $config['api_token'],
     ];
 
     $curl = curl_init();

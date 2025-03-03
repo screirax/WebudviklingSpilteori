@@ -3,20 +3,25 @@ let context = canvas.getContext("2d");
 const SW = canvas.width;
 const SH = canvas.height;
 const TILE_W = 25;
-let bgcolor = "green";
-let highscore = 1;
-let lives = 10;
-let waves = 1;
-let gold = 50;
+
+let gamerLoop = null;
 let towers = [];
+let bgcolor = "green";
+let highscore = 0;
+let lives = 20;
+let waves = 0;
+let gold = 50;
+let soldiers = [];
 
 class Soldier {
-    constructor(pos,color,r,health,damage) {
+    constructor(pos,color,r,health,damage, gainGold, speed) {
         this.pos = pos;
         this.color = color;
         this.r = r;
         this.health = health;
         this.damage = damage;
+        this.gainGold = gainGold
+        this.speed = speed
 
         this.targets = [];
         this.targets[0] = new vector(start.x + pathData[0].x, start.y + pathData[0].y);
@@ -32,14 +37,14 @@ class Soldier {
         }
         this.currenttartget = this.targets[0];
         this.direction = new vector(0,0);
-        this.speed = 4;
-        this.Mintargetdistance = 2;
+        this.Mintargetdistance = 4;
 
 
 
     }
     update() {
         if (this.currenttartget == null) return;
+
 
         let direction = new vector (this.currenttartget.x - this.pos.x, this.currenttartget.y - this.pos.y);
         let distance = (direction.x**2 + direction.y**2) ** (1/2);
@@ -82,38 +87,71 @@ class Soldier {
 
 }
 
+
+
+
 class Tower {
-    constructor(x, y, range, damage) {
+    constructor(x, y, range, damage, towerAttackSpeed, goldPrice) {
         this.x = x;
         this.y = y;
         this.range = range;
         this.damage = damage;
+        this.towerAttackSpeed = towerAttackSpeed
+        this.LastTowerAttack = 0;
+        this.cost = goldPrice
 
     }
 
     attack(enemy) {
+        let towertime = Date.now();
 
-        const distance = Math.sqrt(Math.pow(enemy.pos.x - this.x, 2) + Math.pow(enemy.pos.y - this.y, 2));
+        if(towertime - this.LastTowerAttack >= 1000 / this.towerAttackSpeed) {
 
-        if (distance <= this.range) {
-            enemy.health -= this.damage;
+            const distance = Math.sqrt(Math.pow(enemy.pos.x - this.x, 2) + Math.pow(enemy.pos.y - this.y, 2));
+
+            if (distance <= this.range) {
+                enemy.health -= this.damage;
+                this.LastTowerAttack = towertime;
+            }
+
         }
+
     }
+
 }
 
 function placeTower(x, y) {
-    let newTower = new Tower(x, y, 100, 10);
+    let towerPrice = 15;
+    let towerRadius = 15;
+    let minDistance = towerRadius * 2;
+
+    if (gold < towerPrice){
+        return;
+    }
+
+    for (let tower of towers) {
+        let distance = Math.sqrt(Math.pow(tower.x - x, 2) + Math.pow(tower.y - y, 2));
+        if (distance < minDistance){
+            return;
+        }
+    }
+
+    gold -= towerPrice;
+    let newTower = new Tower(x, y, 100, 7, 4);
     towers.push(newTower);
+
 }
 
+
+
 function renderTowers() {
-    context.fillStyle = "black"; // Tårnfarve
+    context.fillStyle = "Blue";
     towers.forEach(tower => {
         context.beginPath();
-        context.arc(tower.x, tower.y, 10, 0, Math.PI * 2);
+        context.arc(tower.x, tower.y, 15, 0, Math.PI * 2);
         context.fill();
 
-        // Tegn rækkevidde (valgfrit)
+
         context.strokeStyle = "rgba(0, 0, 0, 0.3)";
         context.beginPath();
         context.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
@@ -122,12 +160,16 @@ function renderTowers() {
 }
 
 function updateTowers() {
+
+
     towers.forEach(tower => {
         soldiers.forEach(enemy => {
             tower.attack(enemy);
             if (enemy.health <= 0) {
                 soldiers.splice(soldiers.indexOf(enemy), 1);
                 highscore += 10;
+                gold += enemy.gainGold;
+
             }
         });
     });
@@ -141,9 +183,26 @@ canvas.addEventListener("click", function(event) {
 });
 
 
+
+function wavesStarter (){
+    waves++;
+
+    let soldierStart = new vector(100,0);
+    const NUM_SOLDIERS = 10;
+
+    for (let i = 0; i < NUM_SOLDIERS + waves * 2; i++) {
+        let newSoldier = new Soldier(new vector(soldierStart.x, soldierStart.y), "red", 20, 25 + waves * 10, 1, 5, 2);
+        soldiers.push(newSoldier);
+        soldierStart.y -= 50;
+    }
+}
+
+
+
 function gameOver() {
     clearInterval(gamerLoop);
-
+    // skal bruge denne linje for at sende scores nu da mit html har problemer med at loade min save funktion
+    window.saveScore = saveScore;
 
     let canvas = document.getElementById("canvas");
     let rect = canvas.getBoundingClientRect();
@@ -157,9 +216,10 @@ function gameOver() {
         <p>Your Score: <span id="finalScore">${highscore}</span></p>
         <p>Enter your name:</p>
         <input type="text" id="playerName" placeholder="Your Name">
+    
         <button onclick="saveScore()">Submit Score</button>
-        <button onclick="playAgain()">Play Again</button>
-        <iframe src="https://highscores.martindilling.com/games/24/embed?" title="Highscore table for Tower Defense" width="100%" height="100%"></iframe>
+        
+        
     `;
 
 
@@ -172,34 +232,12 @@ function gameOver() {
 
 }
 
-function playAgain() {
-
-    let popup = document.getElementById("gameOverPopup");
-    if (popup) {
-        popup.remove();
-    }
-
-
-    lives = 10;
-    highscore = 1;
-    waves = 1;
-    gold = 50;
-
-
-    soldiers = [];
-    let soldierStart = new vector(100, 0);
-    for (let i = 0; i < NUM_SOLDIERS; i++) {
-        let newSoldier = new Soldier(new vector(soldierStart.x, soldierStart.y), "blue", 20, 50, 1);
-        soldiers.push(newSoldier);
-        soldierStart.y -= 50;
-    }
-
-
-    gamerLoop = setInterval(play, 1000 / 60);
-}
 function saveScore() {
     let playerName = document.getElementById("playerName").value || "Anomyous";
     let playerScore = highscore;
+
+
+    console.log(`Sending score: ${playerName} - ${playerScore}`); // Debug
 
     fetch('submit-highscore.php', {
         method: 'POST',
@@ -211,13 +249,31 @@ function saveScore() {
             score: playerScore,
         }),
     })
-
-
-// 10|phJ5zwoundpVVSB7SP5efJNbpcTSaK25ZDsgCKq229b28198
+    location.reload();
 
 }
 
+document.addEventListener("DOMContentLoaded", function() {
+    let popup = document.getElementById("startPopup");
+    let playButton = document.getElementById("playButton");
 
+
+    popup.style.display = "block";
+
+
+    playButton.addEventListener("click", function() {
+        popup.style.display = "none";
+        startGame();
+    });
+});
+
+function startGame() {
+
+    if( gamerLoop === null){
+        gamerLoop = setInterval(play, 1000 / 60);
+    }
+
+}
 class vector{
     constructor(x, y) {
         this.x = x;
@@ -237,26 +293,12 @@ let pathData  =[
     new vector(0,150)
 ]
 
-// let soldier = new Soldier(new vector(start.x, start.y), "red", 20, 50 , 1);
-
-let soldiers = [];
-const NUM_SOLDIERS = 10;
-
-let solderStart = new vector(100,0);
-
-for (let i = 0; i < NUM_SOLDIERS; i++) {
-    let newSoldier = new Soldier(new vector(solderStart.x,solderStart.y), "blue",20,50,1);
-    soldiers[soldiers.length] = newSoldier;
-    solderStart.y -= 50;
-}
-
-
 
 function update (){
-    //soldier.update();
     soldiers.forEach(function (s){
         s.update();
     });
+
     updateTowers();
     document.getElementById("gold").innerText = gold;
     document.getElementById("highscore").innerText = highscore;
@@ -266,6 +308,10 @@ function update (){
     if (lives <= 0 ){
         gameOver();
     }
+    if (soldiers.length === 0 ){
+        wavesStarter();
+    }
+
 }
 
 function renderPath () {
@@ -320,36 +366,28 @@ function renderGrid (){
     }
 
 }
-function infoarea(){
-    var statusbar = document.createElement("div");
-    statusbar.setAttribute("id", "statusbar");
-    statusbar.setAttribute("class", "statusbar");
-    statusbar.innerHTML = '<p> Cash: <span id="gold">$0</span> Score: <span id="score">0</span> Wave: <span id="wave">0</span> Lives: <span id="lives">0</span></p>';
-    document.body.appendChild(statusbar);
-}
+
 function render(){
     context.fillStyle = bgcolor;
     context.fillRect(0, 0, SW, SH);
 
 
     renderPath();
-    //renderGrid();
-    renderTowers();
-    //soldier.render();
+    renderTowers(context);
     soldiers.forEach(function (s){
         s.render();
     });
 
+
 }
 
 function play (){
-    update()
-    render()
+    update();
+    render();
+    updateTowers();
 
 }
 
-
-let gamerLoop = setInterval(play, 1000/60 );
 
 
 

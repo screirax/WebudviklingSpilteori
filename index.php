@@ -2,12 +2,13 @@
 require_once __DIR__ . '/api.php';
 
 $url = 'https://highscores.martindilling.com/api/v1/games';
+/* bruges til at se hvilke games der er
 try {
     $response = apiGet($url);
 }catch (Throwable $e){
     var_dump($e);
 }
-
+*/
 ?>
 
 
@@ -23,13 +24,21 @@ try {
 <div id="gameBox">
     <canvas id="canvas" width="800" height="600"></canvas>
     <div id="infoarea">
-        <p>Gold: <span id="gold">$0</span></p>
+        <p>Gold: <span id="gold">50</span></p>
         <p>Score: <span id="highscore">0</span></p>
-        <p>Wave: <span id="wave">0</span></p>
-        <p>Lives: <span id="lives">10</span></p>
+        <p>Wave: <span id="wave">1</span></p>
+        <p>Lives: <span id="lives">20</span></p>
+        <button id="showRange">Show Range</button>
     </div>
 </div>
 
+<div id="startPopup" class="popup">
+    <h2>Leaderboard</h2>
+    <iframe src="https://highscores.martindilling.com/games/24/embed?fontSize=80" title="Highscore table for Tower Defense" width="100%" height="100%"></iframe>
+    <button id="playButton">Play</button><!--Det næste spil ide er 61-->
+</div>
+
+<!-- martoin's api leaderboard generater
 <div class="title">
     Highscore API cennection
 </div>
@@ -40,7 +49,7 @@ try {
     <div data-player class="player"></div>
     <div data-score class="score"></div>
     <button data-send-button class="send-button">Send</button>
-    <pre data-response-preview class="response-preview"><?php  echo $response ? json_encode($response, JSON_PRETTY_PRINT) : '' ?></pre>
+    <pre data-response-preview class="response-preview"><php  echo $response ? json_encode($response, JSON_PRETTY_PRINT) : '' ?></pre>
 
 </div>
 
@@ -96,10 +105,8 @@ try {
 
 
 </script>
-
-<!--
-<script src="main.js"> </script>
 -->
+
 <script type="module" src="main.js"></script>
 </body>
 </html>
