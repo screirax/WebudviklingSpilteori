@@ -13,8 +13,19 @@ let waves = 0;
 let gold = 50;
 let soldiers = [];
 
+let selectedTower = "Standard Tower"; // Standardvalgt tårn
+
+// Test om knapperne virker
+document.querySelectorAll("#infoarea button").forEach(button => {
+    button.addEventListener("click", function() {
+        selectedTower = this.innerText.split(" (")[0]; // Opdaterer ud fra knapteksten
+        console.log("Valgt Tower:", selectedTower);
+    });
+});
+
+
 class Soldier {
-    constructor(pos,color,r,health,damage, gainGold, speed) {
+    constructor(pos,color,r,health,damage, gainGold, speed, points) {
         this.pos = pos;
         this.color = color;
         this.r = r;
@@ -22,6 +33,7 @@ class Soldier {
         this.damage = damage;
         this.gainGold = gainGold
         this.speed = speed
+        this.points = points
 
         this.targets = [];
         this.targets[0] = new vector(start.x + pathData[0].x, start.y + pathData[0].y);
@@ -72,7 +84,7 @@ class Soldier {
             }
         }
         if (this.currenttartget === null) {
-            lives--;
+            lives -= this.damage;
             soldiers.splice(soldiers.indexOf(this), 1);
         }
 
@@ -91,7 +103,7 @@ class Soldier {
 
 
 class Tower {
-    constructor(x, y, range, damage, towerAttackSpeed, goldPrice) {
+    /*constructor(x, y, range, damage, towerAttackSpeed, goldPrice) {
         this.x = x;
         this.y = y;
         this.range = range;
@@ -117,15 +129,137 @@ class Tower {
         }
 
     }
+*/
+
+    constructor(x, y, type, colour) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.colour = colour;
+
+        switch (type) {
+            case "Rapid Tower":
+                this.range = 70;
+                this.damage = 6;
+                this.towerAttackSpeed = 6;
+                this.cost = 25;
+                break;
+            case "Sniper Tower":
+                this.range = 250;
+                this.damage = 65;
+                this.towerAttackSpeed = 1;
+                this.cost = 40;
+                break;
+            case "Splash Tower":
+                this.range = 100;
+                this.damage = 30;
+                this.towerAttackSpeed = 2;
+                this.splashRadius = 40;
+                this.cost = 50;
+                break;
+            default:
+                this.range = 100;
+                this.damage = 8;
+                this.towerAttackSpeed = 3;
+                this.cost = 15;
+        }
+
+        this.LastTowerAttack = 0;
+    }
+
+    attack(enemy) {
+        let towertime = Date.now();
+
+        if (towertime - this.LastTowerAttack >= 1000 / this.towerAttackSpeed) {
+            const distance = Math.sqrt((enemy.pos.x - this.x) ** 2 + (enemy.pos.y - this.y) ** 2);
+
+            if (distance <= this.range) {
+                if (this.type === "Splash Tower") {
+                    // Splash damage til alle fjender i området
+                    soldiers.forEach(s => {
+                        const splashDist = Math.sqrt((s.pos.x - this.x) ** 2 + (s.pos.y - this.y) ** 2);
+                        if (splashDist <= this.splashRadius) {
+                            s.health -= this.damage;
+                        }
+                    });
+                } else {
+                    enemy.health -= this.damage;
+                }
+                this.LastTowerAttack = towertime;
+            }
+        }
+    }
+
 
 }
 
-function placeTower(x, y) {
-    let towerPrice = 15;
+function isOnPath(x, y) {
+    let drawPath = new vector(start.x, start.y);
+
+    for (let path of pathData) {
+        let x1, y1, x2, y2;
+
+        if (path.x === 0) {
+            // Lodret sti
+            x1 = drawPath.x - TILE_W;
+            y1 = drawPath.y;
+            x2 = drawPath.x + TILE_W;
+            y2 = drawPath.y + path.y;
+        } else {
+            // Vandret sti
+            x1 = drawPath.x;
+            y1 = drawPath.y - TILE_W;
+            x2 = drawPath.x + path.x;
+            y2 = drawPath.y + TILE_W;
+        }
+
+
+        if (x >= Math.min(x1, x2) && x <= Math.max(x1, x2) &&
+            y >= Math.min(y1, y2) && y <= Math.max(y1, y2)) {
+            return true;
+        }
+
+
+        drawPath.x += path.x;
+        drawPath.y += path.y;
+    }
+
+    return false;
+}
+
+function placeTower(x, y, type) {
+
     let towerRadius = 15;
     let minDistance = towerRadius * 2;
 
+    let towerPrice = 0;
+    let towerColor = "Blue"; // Standardfarve
+
+    switch (type) {
+        case "Rapid Tower":
+            towerPrice = 30;
+            towerColor = "Yellow";
+            break;
+        case "Sniper Tower":
+            towerPrice = 40;
+            towerColor = "Grey";
+            break;
+        case "Splash Tower":
+            towerPrice = 50;
+            towerColor = "Brown";
+            break;
+        default:
+            towerPrice = 15;
+            towerColor = "Blue";
+    }
+
+
     if (gold < towerPrice){
+        return;
+    }
+
+    if (isOnPath(x, y)) {
+        console.log("Du kan ikke placere tårne på vejen!");
         return;
     }
 
@@ -137,7 +271,7 @@ function placeTower(x, y) {
     }
 
     gold -= towerPrice;
-    let newTower = new Tower(x, y, 100, 7, 4);
+    let newTower = new Tower(x, y, type, towerColor);
     towers.push(newTower);
 
 }
@@ -145,8 +279,9 @@ function placeTower(x, y) {
 
 
 function renderTowers() {
-    context.fillStyle = "Blue";
+
     towers.forEach(tower => {
+        context.fillStyle = tower.colour;
         context.beginPath();
         context.arc(tower.x, tower.y, 15, 0, Math.PI * 2);
         context.fill();
@@ -167,7 +302,7 @@ function updateTowers() {
             tower.attack(enemy);
             if (enemy.health <= 0) {
                 soldiers.splice(soldiers.indexOf(enemy), 1);
-                highscore += 10;
+                highscore += enemy.points;
                 gold += enemy.gainGold;
 
             }
@@ -175,12 +310,20 @@ function updateTowers() {
     });
 }
 
+/*canvas.addEventListener("click", function(event) {
+    let rect = canvas.getBoundingClientRect();
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    placeTower(x, y);*/
+
+
 canvas.addEventListener("click", function(event) {
     let rect = canvas.getBoundingClientRect();
     let x = event.clientX - rect.left;
     let y = event.clientY - rect.top;
-    placeTower(x, y);
+    placeTower(x, y, selectedTower);
 });
+
 
 
 
@@ -189,21 +332,83 @@ function wavesStarter (){
 
     let soldierStart = new vector(100,0);
     const NUM_SOLDIERS = 10;
+    const NUM_THIEF = 0;
+    const NUM_HEAVY = 20;
 
+    // normal enemies bliver stærkere efter hvert wave
+    if (waves < 11){
     for (let i = 0; i < NUM_SOLDIERS + waves * 2; i++) {
-        let newSoldier = new Soldier(new vector(soldierStart.x, soldierStart.y), "red", 20, 25 + waves * 10, 1, 5, 2);
+        let newSoldier = new Soldier(new vector(soldierStart.x, soldierStart.y), "red", 15, 30 + waves * 10, 1, 2, 2, 1);
         soldiers.push(newSoldier);
         soldierStart.y -= 50;
+        console.log('Normal', newSoldier.health);
     }
+    }
+    if (waves > 10){
+        for (let i = 0; i < NUM_HEAVY + waves * 2; i++) {
+            let newSoldier3 = new Soldier(new vector(soldierStart.x, soldierStart.y), "black", 15, 40 + waves * 20, 1, 1, 2, 1);
+            soldiers.push(newSoldier3);
+            soldierStart.y -= 50;
+            console.log('Heavy', newSoldier3.health);
+        }
+    }
+
+
+    //Thief(fast) spawner
+    if( waves === 5 || waves === 10 || waves === 15 || waves >= 18){
+    for (let i = 0; i < NUM_THIEF + waves * 2; i++) {
+        let newSoldier2 = new Soldier(new vector(soldierStart.x, soldierStart.y), "yellow", 10, 12 + waves * 10, 1, 1, 3,2)
+        soldiers.push(newSoldier2);
+        soldierStart.y -= 50;
+        console.log('Thief', newSoldier2.health);
+
+
+    }
+    }
+
+
 }
 
 
 
-function gameOver() {
+function gameOver(win) {
     clearInterval(gamerLoop);
     // skal bruge denne linje for at sende scores nu da mit html har problemer med at loade min save funktion
     window.saveScore = saveScore;
 
+
+
+    let canvas = document.getElementById("canvas");
+    let rect = canvas.getBoundingClientRect();
+
+    let finalScore = highscore;
+
+    if (win) {
+        finalScore *= lives;
+        finalScore /= 2;
+    }
+
+    let popup = document.createElement("div");
+    popup.setAttribute("id", "gameOverPopup");
+    popup.setAttribute("class", "popup");
+
+    let message = win ? "You Win!" : "You Lose!";
+
+    popup.innerHTML = `
+        <h2>${message}</h2>
+        <p>Your Score: <span id="Score">${finalScore}</span></p>
+        <p>Enter your name:</p>
+        <input type="text" id="playerName" placeholder="Your Name">
+        <button onclick="saveScore()">Submit Score</button>
+    `;
+
+    document.body.appendChild(popup);
+
+    popup.style.left = `${rect.left + rect.width / 2}px`;
+    popup.style.top = `${rect.top + rect.height / 2}px`;
+    popup.style.transform = "translate(-50%, -50%)";
+
+    /*
     let canvas = document.getElementById("canvas");
     let rect = canvas.getBoundingClientRect();
 
@@ -229,9 +434,42 @@ function gameOver() {
     popup.style.left = `${rect.left + rect.width / 2}px`;
     popup.style.top = `${rect.top + rect.height / 2}px`;
     popup.style.transform = "translate(-50%, -50%)";
+*/
+}
+/*
+function gameWin() {
+    clearInterval(gamerLoop);
+    // skal bruge denne linje for at sende scores nu da mit html har problemer med at loade min save funktion
+
+
+    let canvas = document.getElementById("canvas");
+    let rect = canvas.getBoundingClientRect();
+
+
+    let popup = document.createElement("div");
+    popup.setAttribute("id", "gameOverPopup");
+    popup.setAttribute("class", "popup");
+    popup.innerHTML = `
+        <h2>You Win!</h2>
+        <p>Your Score: <span id="finalScore">${highscore}</span></p>
+        <p>Enter your name:</p>
+        <input type="text" id="playerName" placeholder="Your Name">
+    
+        <button onclick="saveScore()">Submit Score</button>
+        
+        
+    `;
+
+
+    document.body.appendChild(popup);
+
+
+    popup.style.left = `${rect.left + rect.width / 2}px`;
+    popup.style.top = `${rect.top + rect.height / 2}px`;
+    popup.style.transform = "translate(-50%, -50%)";
 
 }
-
+*/
 function saveScore() {
     let playerName = document.getElementById("playerName").value || "Anomyous";
     let playerScore = highscore;
@@ -306,10 +544,13 @@ function update (){
     document.getElementById("lives").innerText = lives;
 
     if (lives <= 0 ){
-        gameOver();
+        gameOver(false);
     }
     if (soldiers.length === 0 ){
         wavesStarter();
+    }
+    if (waves === 20){
+        gameOver(true);
     }
 
 }
@@ -384,7 +625,7 @@ function render(){
 function play (){
     update();
     render();
-    updateTowers();
+    //updateTowers();
 
 }
 

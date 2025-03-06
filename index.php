@@ -28,14 +28,18 @@ try {
         <p>Score: <span id="highscore">0</span></p>
         <p>Wave: <span id="wave">1</span></p>
         <p>Lives: <span id="lives">20</span></p>
-        <button id="showRange">Show Range</button>
+        <button onclick="selectedTower = 'Standard Tower'">Standard Tower (15 Gold)</button>
+        <button onclick="selectedTower = 'Rapid Tower'">Rapid Tower (30 Gold)</button>
+        <button onclick="selectedTower = 'Sniper Tower'">Sniper Tower (40 Gold)</button>
+        <button onclick="selectedTower = 'Splash Tower'">Splash Tower (50 Gold)</button>
     </div>
 </div>
 
 <div id="startPopup" class="popup">
-    <h2>Leaderboard</h2>
+    <h2>Tower Defense</h2>
+    <p>Survive 20 waves to win</p>
     <iframe src="https://highscores.martindilling.com/games/24/embed?fontSize=80" title="Highscore table for Tower Defense" width="100%" height="100%"></iframe>
-    <button id="playButton">Play</button><!--Det næste spil ide er 61-->
+    <button id="playButton" style="margin-top: 5px">Play</button><!--Det næste spil ide er 61-->
 </div>
 
 <!-- martoin's api leaderboard generater
