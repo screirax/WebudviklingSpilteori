@@ -103,33 +103,6 @@ class Soldier {
 
 
 class Tower {
-    /*constructor(x, y, range, damage, towerAttackSpeed, goldPrice) {
-        this.x = x;
-        this.y = y;
-        this.range = range;
-        this.damage = damage;
-        this.towerAttackSpeed = towerAttackSpeed
-        this.LastTowerAttack = 0;
-        this.cost = goldPrice
-
-    }
-
-    attack(enemy) {
-        let towertime = Date.now();
-
-        if(towertime - this.LastTowerAttack >= 1000 / this.towerAttackSpeed) {
-
-            const distance = Math.sqrt(Math.pow(enemy.pos.x - this.x, 2) + Math.pow(enemy.pos.y - this.y, 2));
-
-            if (distance <= this.range) {
-                enemy.health -= this.damage;
-                this.LastTowerAttack = towertime;
-            }
-
-        }
-
-    }
-*/
 
     constructor(x, y, type, colour) {
         this.x = x;
@@ -175,7 +148,7 @@ class Tower {
 
             if (distance <= this.range) {
                 if (this.type === "Splash Tower") {
-                    // Splash damage til alle fjender i området
+
                     soldiers.forEach(s => {
                         const splashDist = Math.sqrt((s.pos.x - this.x) ** 2 + (s.pos.y - this.y) ** 2);
                         if (splashDist <= this.splashRadius) {
@@ -233,7 +206,7 @@ function placeTower(x, y, type) {
     let minDistance = towerRadius * 2;
 
     let towerPrice = 0;
-    let towerColor = "Blue"; // Standardfarve
+    let towerColor = "Blue";
 
     switch (type) {
         case "Rapid Tower":
@@ -286,11 +259,11 @@ function renderTowers() {
         context.arc(tower.x, tower.y, 15, 0, Math.PI * 2);
         context.fill();
 
-
+/*
         context.strokeStyle = "rgba(0, 0, 0, 0.3)";
         context.beginPath();
         context.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
-        context.stroke();
+        context.stroke();*/
     });
 }
 
@@ -310,11 +283,6 @@ function updateTowers() {
     });
 }
 
-/*canvas.addEventListener("click", function(event) {
-    let rect = canvas.getBoundingClientRect();
-    let x = event.clientX - rect.left;
-    let y = event.clientY - rect.top;
-    placeTower(x, y);*/
 
 
 canvas.addEventListener("click", function(event) {
@@ -332,7 +300,7 @@ function wavesStarter (){
 
     let soldierStart = new vector(100,0);
     const NUM_SOLDIERS = 10;
-    const NUM_THIEF = 0;
+    const NUM_THIEF = 5;
     const NUM_HEAVY = 20;
 
     // normal enemies bliver stærkere efter hvert wave
@@ -346,7 +314,7 @@ function wavesStarter (){
     }
     if (waves > 10){
         for (let i = 0; i < NUM_HEAVY + waves * 2; i++) {
-            let newSoldier3 = new Soldier(new vector(soldierStart.x, soldierStart.y), "black", 15, 40 + waves * 20, 1, 1, 2, 1);
+            let newSoldier3 = new Soldier(new vector(soldierStart.x, soldierStart.y), "black", 15, 35 + waves * 20, 1, 2, 2, 1);
             soldiers.push(newSoldier3);
             soldierStart.y -= 50;
             console.log('Heavy', newSoldier3.health);
@@ -354,13 +322,14 @@ function wavesStarter (){
     }
 
 
-    //Thief(fast) spawner
-    if( waves === 5 || waves === 10 || waves === 15 || waves >= 18){
-    for (let i = 0; i < NUM_THIEF + waves * 2; i++) {
-        let newSoldier2 = new Soldier(new vector(soldierStart.x, soldierStart.y), "yellow", 10, 12 + waves * 10, 1, 1, 3,2)
+    //Thief(fast) spawner   || waves >= 18 hvis du skal gøre til 20+
+    if( waves === 5 || waves === 10 || waves === 15){
+    for (let i = 0; i < NUM_THIEF + waves; i++) {
+        let newSoldier2 = new Soldier(new vector(soldierStart.x, soldierStart.y), "yellow", 10, 10 + waves * 10, 1, 1, 3,2)
         soldiers.push(newSoldier2);
         soldierStart.y -= 50;
         console.log('Thief', newSoldier2.health);
+
 
 
     }
@@ -408,68 +377,8 @@ function gameOver(win) {
     popup.style.top = `${rect.top + rect.height / 2}px`;
     popup.style.transform = "translate(-50%, -50%)";
 
-    /*
-    let canvas = document.getElementById("canvas");
-    let rect = canvas.getBoundingClientRect();
-
-
-    let popup = document.createElement("div");
-    popup.setAttribute("id", "gameOverPopup");
-    popup.setAttribute("class", "popup");
-    popup.innerHTML = `
-        <h2>You Lose!</h2>
-        <p>Your Score: <span id="finalScore">${highscore}</span></p>
-        <p>Enter your name:</p>
-        <input type="text" id="playerName" placeholder="Your Name">
-    
-        <button onclick="saveScore()">Submit Score</button>
-        
-        
-    `;
-
-
-    document.body.appendChild(popup);
-
-
-    popup.style.left = `${rect.left + rect.width / 2}px`;
-    popup.style.top = `${rect.top + rect.height / 2}px`;
-    popup.style.transform = "translate(-50%, -50%)";
-*/
-}
-/*
-function gameWin() {
-    clearInterval(gamerLoop);
-    // skal bruge denne linje for at sende scores nu da mit html har problemer med at loade min save funktion
-
-
-    let canvas = document.getElementById("canvas");
-    let rect = canvas.getBoundingClientRect();
-
-
-    let popup = document.createElement("div");
-    popup.setAttribute("id", "gameOverPopup");
-    popup.setAttribute("class", "popup");
-    popup.innerHTML = `
-        <h2>You Win!</h2>
-        <p>Your Score: <span id="finalScore">${highscore}</span></p>
-        <p>Enter your name:</p>
-        <input type="text" id="playerName" placeholder="Your Name">
-    
-        <button onclick="saveScore()">Submit Score</button>
-        
-        
-    `;
-
-
-    document.body.appendChild(popup);
-
-
-    popup.style.left = `${rect.left + rect.width / 2}px`;
-    popup.style.top = `${rect.top + rect.height / 2}px`;
-    popup.style.transform = "translate(-50%, -50%)";
 
 }
-*/
 function saveScore() {
     let playerName = document.getElementById("playerName").value || "Anomyous";
     let playerScore = highscore;
@@ -549,7 +458,7 @@ function update (){
     if (soldiers.length === 0 ){
         wavesStarter();
     }
-    if (waves === 20){
+    if (waves === 16){
         gameOver(true);
     }
 
@@ -625,7 +534,7 @@ function render(){
 function play (){
     update();
     render();
-    //updateTowers();
+
 
 }
 
